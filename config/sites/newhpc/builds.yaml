@@ -1,0 +1,120 @@
+# =============================================================================
+# 빌드 매트릭스
+#
+# 모델별로 axes(축)의 데카르트 곱만큼 빌드 변형이 만들어집니다.
+#   예) toolchain 2개 x opt 3개 x par 2개 = 12개 빌드
+# 각 축 값(spec)에서 쓸 수 있는 키:
+#   modules: [...]     모듈 목록 (축 순서대로 이어붙임)
+#   env: {VAR: val}    환경변수. bash 에서 평가되므로 $(nc-config --prefix) 같은 것 가능
+#   openmp: bool       OpenMP 빌드 여부 (실행 테스트가 threads>1 허용 여부 판단에 사용)
+#   mpas: {...}        MPAS 전용 설정 (아래 참고)
+#   wrf:  {...}        WRF 전용 설정 (아래 참고)
+# 확인: python3 build/build_matrix.py list
+# =============================================================================
+
+# 여러 모델이 공유하는 툴체인 정의. axes.toolchain 에서 이름으로 참조합니다.
+toolchains:
+  gcc16:
+    modules: [gcc/16.1.0, cray-mpich/9.2.0, hdf5/1.14.6, netcdf-c/4.10.0,
+              netcdf-fortran/4.6.2, parallel-netcdf/1.14.1]
+    env:
+      NETCDF_C_PREFIX: "$(nc-config --prefix)"
+      NETCDF_F_PREFIX: "$(nf-config --prefix)"
+      PNETCDF_PREFIX: "$(pnetcdf-config --prefix)"
+
+  # TODO: 'module load gcc/14.4.0' 후 'module avail' 로 cray-mpich/netcdf 등이
+  #       gcc/14.4.0 계층에도 있는지 확인하세요. 없으면 아래 axes 에서 빼세요.
+  gcc14:
+    modules: [gcc/14.4.0, cray-mpich/9.2.0, hdf5/1.14.6, netcdf-c/4.10.0,
+              netcdf-fortran/4.6.2, parallel-netcdf/1.14.1]
+    env:
+      NETCDF_C_PREFIX: "$(nc-config --prefix)"
+      NETCDF_F_PREFIX: "$(nf-config --prefix)"
+      PNETCDF_PREFIX: "$(pnetcdf-config --prefix)"
+
+# -----------------------------------------------------------------------------
+# MPAS-Atmosphere
+#   mpas.target          : 기준이 될 Makefile 타깃 (gnu, llvm ...)
+#   mpas.make_overrides  : 그 타깃 블록의 "VAR = ..." 값을 바꿀 것들
+#                          (FFLAGS_OPT, CFLAGS_OPT, CXXFLAGS_OPT, LDFLAGS_OPT, FFLAGS_OMP ...)
+#   mpas.make_args       : make 명령에 추가할 인자 (예: ["PRECISION=double"])
+#                          최신 MPAS 는 기본이 단정밀도일 수 있으니 비교 시 명시하세요.
+# -----------------------------------------------------------------------------
+mpas:
+  source: /path/to/MPAS-Model        # TODO: 이미 빌드에 성공한 MPAS 소스 트리
+  core: atmosphere
+  name: "mpas-{toolchain}-{opt}-{par}"
+  common:
+    env:
+      NETCDF: "$NETCDF_C_PREFIX"
+      NETCDFF: "$NETCDF_F_PREFIX"     # netcdf-c/-fortran 이 다른 경로일 때 MPAS 가 사용
+      PNETCDF: "$PNETCDF_PREFIX"      # SMIOL 은 PnetCDF 필수
+    mpas:
+      target: gnu
+  axes:
+    toolchain: [gcc16, gcc14]
+    opt:
+      O3:                             # MPAS gnu 타깃 기본값 (-O3)
+        mpas: {make_overrides: {}}
+      O2:
+        mpas:
+          make_overrides:
+            FFLAGS_OPT: "-std=f2008 -fimplicit-none -O2 -ffree-line-length-none -fconvert=big-endian -ffree-form"
+            CFLAGS_OPT: "-O2"
+            CXXFLAGS_OPT: "-O2"
+            LDFLAGS_OPT: "-O2"
+      O3native:
+        mpas:
+          make_overrides:
+            FFLAGS_OPT: "-std=f2008 -fimplicit-none -O3 -march=native -ffree-line-length-none -fconvert=big-endian -ffree-form"
+            CFLAGS_OPT: "-O3 -march=native"
+            CXXFLAGS_OPT: "-O3 -march=native"
+            LDFLAGS_OPT: "-O3 -march=native"
+    par:
+      mpi:    {openmp: false}
+      hybrid: {openmp: true}
+  exclude:
+    - {toolchain: gcc14, opt: O2}     # 예시: 필요 없는 조합 제외
+
+# -----------------------------------------------------------------------------
+# WRF (classic configure/compile, em_real)
+#   wrf.configure_match       : configure 메뉴에서 고를 항목 설명 (정규식)
+#   wrf.configure_option      : 번호를 직접 지정하려면 (configure_match 보다 우선)
+#   wrf.parallel              : serial | smpar | dmpar | dm+sm
+#   wrf.nesting               : 1=basic (기본)
+#   wrf.configure_overrides   : configure.wrf 의 "VAR = ..." 줄을 교체 (FCOPTIM 등)
+#   wrf.compile_case          : em_real (기본)
+# PnetCDF 지원은 configure 시점에 PNETCDF 환경변수가 있으면 켜집니다 (io 축 참고).
+# -----------------------------------------------------------------------------
+wrf:
+  source: /path/to/WRF               # TODO: 이미 빌드에 성공한 WRF 소스 트리
+  name: "wrf-{toolchain}-{opt}-{par}-{io}"
+  common:
+    env:
+      NETCDF: "$NETCDF_F_PREFIX"      # WRF 는 NETCDF=fortran, NETCDF_C=c 경로를 따로 받음
+      NETCDF_C: "$NETCDF_C_PREFIX"
+      WRFIO_NCD_LARGE_FILE_SUPPORT: "1"
+    wrf:
+      configure_match: '^GNU \(gfortran/gcc\)$'
+      compile_case: em_real
+  axes:
+    toolchain: [gcc16]
+    opt:
+      O2:                             # WRF GNU 기본값
+        wrf: {configure_overrides: {}}
+      O3native:
+        wrf:
+          configure_overrides:
+            FCOPTIM: "-O3 -march=native -ftree-vectorize -funroll-loops"
+            CFLAGS_LOCAL: "-w -O3 -march=native -c"
+    par:
+      dmpar:  {openmp: false, wrf: {parallel: dmpar}}
+      dmsm:   {openmp: true,  wrf: {parallel: dm+sm}}
+    io:
+      nc:     {env: {PNETCDF: null}}   # null = unset (모듈이 PNETCDF 를 설정해도 끔)
+      pnc:    {env: {PNETCDF: "$PNETCDF_PREFIX"}}
+  exclude: []
+
+# 참고: LLVM 툴체인(llvm/22.1.8, flang)을 추가하려면 toolchains 에 llvm 을 정의하고
+#       MPAS 는 mpas.target: llvm 을 쓰면 됩니다. WRF 의 기본 configure.defaults 에는
+#       upstream LLVM flang 용 항목이 없어(AOCC 전용 항목만 있음) 별도 작업이 필요합니다.

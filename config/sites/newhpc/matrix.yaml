@@ -1,0 +1,72 @@
+# =============================================================================
+# 실행 매트릭스 (ReFrame 테스트가 읽음)
+#   각 모델: 성공한 빌드 x nodes x layouts x repeats 만큼 Slurm job 이 생성됩니다.
+#   layouts:          [[노드당 MPI rank 수, rank 당 OpenMP 스레드 수], ...]
+#   threads_per_rank: layouts 대신 쓰면 노드를 꽉 채우는 조합을 자동 생성
+#                     (예: 128코어, [1,2,4] -> 128x1, 64x2, 32x4)
+#   builds:           all 또는 빌드 이름 정규식 목록
+# 실행 전 개수 확인: ./perfsonde list mpas
+# =============================================================================
+
+repeats: 3                       # 모든 조합 반복 횟수 (중앙값으로 비교)
+darshan: false                   # true 면 Darshan I/O 계측 (darshan-runtime 모듈)
+
+mpas:
+  case_dir: /path/to/mpas_case   # TODO: init 파일, namelist.atmosphere, streams.atmosphere,
+                                 #       graph.info 가 들어 있는 실행 디렉터리
+  graph_file: x1.40962.graph.info  # TODO: 메시 graph 파일 이름 (partition 자동 생성용)
+  builds: all
+  nodes: [1, 2, 4]
+  threads_per_rank: [1, 2, 4]
+  # layouts: [[128, 1], [64, 2], [32, 4], [16, 8]]
+  time_limit: "00:30:00"
+  # 빌드 트리에서 실행 디렉터리로 링크할 파일 (물리 lookup table 등)
+  link_from_build: ["src/core_atmosphere/physics/physics_wrf/files/*"]
+  # namelist.atmosphere 덮어쓰기 ("group.key": value)
+  namelist:
+    nhyd_model.config_run_duration: "0_06:00:00"
+  # 텍스트 치환 (정규식, 치환문) — 예: 출력 끄기
+  file_patches: {}
+  #   streams.atmosphere:
+  #     - ['output_interval="[^"]*"', 'output_interval="none"']
+  # 빌드 축 라벨별 추가 설정 (예: io 축이 있을 때)
+  by_build_label: {}
+  extra_timers: []               # 로그 타이머 이름 추가 수집 (예: "physics driver")
+  env: {}                        # 실행 시 추가 환경변수 (예: OMP_STACKSIZE: 1G)
+  # verify:                      # 결과 재현성 검사 (nccmp, 기준 빌드 출력과 비교)
+  #   reference: /path/to/ref/history.2014-09-10_06.00.00.nc
+  #   output: history.2014-09-10_06.00.00.nc
+  #   nccmp_opts: "-d -f"
+
+wrf:
+  case_dir: /path/to/wrf_case    # TODO: namelist.input, wrfinput_d01, wrfbdy_d01 위치
+  builds: all
+  nodes: [1, 2, 4]
+  threads_per_rank: [1, 2, 4]
+  time_limit: "00:30:00"
+  skip_steps: 1                  # 평균 계산에서 제외할 첫 스텝 수
+  domain: 1
+  link_from_build: ["run/*"]     # 테이블 파일 (namelist.input, *.exe 는 제외됨)
+  namelist: {}
+  #   time_control.run_hours: 6
+  #   time_control.history_interval: 180
+  by_build_label:
+    io:
+      nc:
+        namelist:
+          time_control.io_form_history: 2
+      pnc:
+        namelist:
+          time_control.io_form_history: 11
+  env:
+    OMP_STACKSIZE: 1G
+  # verify:
+  #   reference: /path/to/ref/wrfout_d01_2019-09-04_18:00:00
+  #   output: wrfout_d01_2019-09-04_18:00:00
+
+osu:
+  # 로드할 모듈은 site.yaml 의 tools.osu
+  # bin_dir: /path/to/osu/libexec/osu-micro-benchmarks/mpi   # 자동 탐색 실패 시
+  pt2pt_sizes: [8, 65536, 1048576]
+  allreduce_nodes: [2, 4]
+  allreduce_sizes: [8, 65536, 1048576]

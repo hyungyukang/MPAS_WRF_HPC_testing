@@ -1,0 +1,55 @@
+# =============================================================================
+# PerfSonde 사이트 설정 (newhpc) — 손으로 작성한 예시 프로필입니다.
+# 새 시스템은 그 시스템의 로그인 노드에서 ./perfsonde discover 로 자동 생성하세요.
+# 경로에는 ~, $VAR, {site} 를 쓸 수 있고 상대 경로는 perfsonde 최상위 기준입니다.
+# =============================================================================
+
+system:
+  name: newhpc
+  descr: "New HPC system (offline)"
+  # 이 정규식 중 하나가 hostname 과 맞으면 --site 없이도 이 프로필이 선택됩니다.
+  hostnames: []
+  # 모듈은 각 빌드의 env.sh 가 직접 로드하므로 ReFrame 의 모듈 연동은 끕니다.
+  modules_system: nomod
+  # env.sh 맨 앞에서 실행되어 모듈 환경을 초기 상태로 되돌립니다.
+  # (module purge 는 Core/DefApps 까지 내려서 srun 등이 사라질 수 있어 reset 권장)
+  module_init: "module reset"
+
+slurm:
+  # sacct(accounting)가 켜져 있으면 slurm, 없으면 squeue 로 바꾸세요.
+  scheduler: slurm
+  partition: compute          # TODO: 실제 계산 파티션 이름
+  account: ""                 # TODO: 필요하면 계정 (예: proj123)
+  qos: ""
+  extra_options: []           # 예: ["--constraint=cpu", "--reservation=bench"]
+  time_limit: "00:30:00"      # 실행 테스트 1개당 시간 제한
+  max_jobs: 8                 # ReFrame 이 동시에 큐에 넣을 최대 job 수
+  srun_options: ["--cpu-bind=cores", "--distribution=block:block"]
+
+# 보조 도구 모듈 (MPAS partition, 결과 비교, I/O 계측, 네트워크 기준선)
+tools:
+  metis: metis/5.1.0
+  nccmp: nccmp/1.11.0.0
+  darshan: darshan-runtime/3.5.0
+  osu: [gcc/16.1.0, cray-mpich/9.2.0, osu-micro-benchmarks/7.5.2]
+
+node:
+  cores_per_node: 128         # TODO: 노드당 물리 코어 수 (lscpu 로 확인)
+  smt: 1                      # Slurm 이 보는 코어당 하드웨어 스레드 수 (SMT 켜져 있으면 2)
+
+build:
+  root: work/{site}/builds    # 빌드 결과가 쌓이는 곳 (공유 파일시스템, 용량 큰 곳 권장)
+  mode: sbatch                # sbatch: 계산 노드에서 빌드 / local: 지금 쉘에서 빌드
+  make_jobs: 16
+  sbatch_options:
+    - "--nodes=1"
+    - "--ntasks=1"
+    - "--cpus-per-task=16"
+    - "--time=02:00:00"
+    # 파티션/계정은 위 slurm 섹션 값이 자동으로 붙습니다.
+
+results:
+  root: work/{site}/results   # results.jsonl, CSV, 그림이 저장되는 곳
+
+reframe:
+  dir: work/{site}/rfm         # stage/, output/, perflogs/, reports/, reframe.log

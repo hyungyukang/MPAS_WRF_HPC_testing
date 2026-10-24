@@ -1,0 +1,23 @@
+ Beginning MPAS-atmosphere Output Log File for task       0 of     128
+ ...
+ Timer information: 
+    Globals are computed across all threads and processors
+
+ Columns:
+    total time: Global max of accumulated time spent in timer
+
+
+   timer_name                                            total       calls        min            max            avg      pct_tot   pct_par     par_eff
+ 1 total time                                         412.34560         1      371.11104      494.81472      412.34560   100.00      50.00       0.97
+ 2  initialize                                         35.12340         1       31.61106       42.14808       35.12340     8.52      50.00       0.97
+ 2  time integration                                  370.98760       360        0.92747        1.23663        1.03052    89.97      50.00       0.97
+ 3   atm_rk_integration_setup                           2.10000       360        0.00525        0.00700        0.00583     0.51      50.00       0.97
+ 3   atm_compute_moist_coefficients                     1.50000       360        0.00375        0.00500        0.00417     0.36      50.00       0.97
+ 3   physics driver                                   120.44000       360        0.30110        0.40147        0.33456    29.21      50.00       0.97
+ 4    radiation_lw                                     40.20000        30        1.20600        1.60800        1.34000     9.75      50.00       0.97
+ 4    radiation_sw                                     22.10000        30        0.66300        0.88400        0.73667     5.36      50.00       0.97
+ 3   atm_rk_dynamics_substep_finish                     9.80000      1080        0.00817        0.01089        0.00907     2.38      50.00       0.97
+ 2  stream_output                                       6.54321         7        0.84127        1.12169        0.93474     1.59      50.00       0.97
+
+ -----------------------------------------
+ Total log messages printed:

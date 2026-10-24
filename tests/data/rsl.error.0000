@@ -1,0 +1,66 @@
+taskid: 0 hostname: nid001
+Timing for processing wrfinput file (stream 0) for domain        1:    1.23456 elapsed seconds
+Timing for processing lateral boundary for domain        1:    0.34567 elapsed seconds
+Timing for main: time 2019-09-04_12:01:00 on domain   1:    3.50000 elapsed seconds
+Timing for main: time 2019-09-04_12:02:00 on domain   1:    0.72000 elapsed seconds
+Timing for main: time 2019-09-04_12:03:00 on domain   1:    0.73000 elapsed seconds
+Timing for main: time 2019-09-04_12:04:00 on domain   1:    0.74000 elapsed seconds
+Timing for main: time 2019-09-04_12:05:00 on domain   1:    0.70000 elapsed seconds
+Timing for main: time 2019-09-04_12:06:00 on domain   1:    0.71000 elapsed seconds
+Timing for main: time 2019-09-04_12:07:00 on domain   1:    0.72000 elapsed seconds
+Timing for main: time 2019-09-04_12:08:00 on domain   1:    0.73000 elapsed seconds
+Timing for main: time 2019-09-04_12:09:00 on domain   1:    0.74000 elapsed seconds
+Timing for main: time 2019-09-04_12:10:00 on domain   1:    0.70000 elapsed seconds
+Timing for main: time 2019-09-04_12:11:00 on domain   1:    0.71000 elapsed seconds
+Timing for main: time 2019-09-04_12:12:00 on domain   1:    0.72000 elapsed seconds
+Timing for main: time 2019-09-04_12:13:00 on domain   1:    0.73000 elapsed seconds
+Timing for main: time 2019-09-04_12:14:00 on domain   1:    0.74000 elapsed seconds
+Timing for main: time 2019-09-04_12:15:00 on domain   1:    0.70000 elapsed seconds
+Timing for main: time 2019-09-04_12:16:00 on domain   1:    0.71000 elapsed seconds
+Timing for main: time 2019-09-04_12:17:00 on domain   1:    0.72000 elapsed seconds
+Timing for main: time 2019-09-04_12:18:00 on domain   1:    0.73000 elapsed seconds
+Timing for main: time 2019-09-04_12:19:00 on domain   1:    0.74000 elapsed seconds
+Timing for main: time 2019-09-04_12:20:00 on domain   1:    0.70000 elapsed seconds
+Timing for main: time 2019-09-04_12:21:00 on domain   1:    0.71000 elapsed seconds
+Timing for main: time 2019-09-04_12:22:00 on domain   1:    0.72000 elapsed seconds
+Timing for main: time 2019-09-04_12:23:00 on domain   1:    0.73000 elapsed seconds
+Timing for main: time 2019-09-04_12:24:00 on domain   1:    0.74000 elapsed seconds
+Timing for main: time 2019-09-04_12:25:00 on domain   1:    0.70000 elapsed seconds
+Timing for main: time 2019-09-04_12:26:00 on domain   1:    0.71000 elapsed seconds
+Timing for main: time 2019-09-04_12:27:00 on domain   1:    0.72000 elapsed seconds
+Timing for main: time 2019-09-04_12:28:00 on domain   1:    0.73000 elapsed seconds
+Timing for main: time 2019-09-04_12:29:00 on domain   1:    0.74000 elapsed seconds
+Timing for main: time 2019-09-04_12:30:00 on domain   1:    0.70000 elapsed seconds
+Timing for Writing wrfout_d01_2019-09-04_12:30:00 for domain        1:    0.81234 elapsed seconds
+Timing for main: time 2019-09-04_12:31:00 on domain   1:    0.71000 elapsed seconds
+Timing for main: time 2019-09-04_12:32:00 on domain   1:    0.72000 elapsed seconds
+Timing for main: time 2019-09-04_12:33:00 on domain   1:    0.73000 elapsed seconds
+Timing for main: time 2019-09-04_12:34:00 on domain   1:    0.74000 elapsed seconds
+Timing for main: time 2019-09-04_12:35:00 on domain   1:    0.70000 elapsed seconds
+Timing for main: time 2019-09-04_12:36:00 on domain   1:    0.71000 elapsed seconds
+Timing for main: time 2019-09-04_12:37:00 on domain   1:    0.72000 elapsed seconds
+Timing for main: time 2019-09-04_12:38:00 on domain   1:    0.73000 elapsed seconds
+Timing for main: time 2019-09-04_12:39:00 on domain   1:    0.74000 elapsed seconds
+Timing for main: time 2019-09-04_12:40:00 on domain   1:    0.70000 elapsed seconds
+Timing for main: time 2019-09-04_12:41:00 on domain   1:    0.71000 elapsed seconds
+Timing for main: time 2019-09-04_12:42:00 on domain   1:    0.72000 elapsed seconds
+Timing for main: time 2019-09-04_12:43:00 on domain   1:    0.73000 elapsed seconds
+Timing for main: time 2019-09-04_12:44:00 on domain   1:    0.74000 elapsed seconds
+Timing for main: time 2019-09-04_12:45:00 on domain   1:    0.70000 elapsed seconds
+Timing for main: time 2019-09-04_12:46:00 on domain   1:    0.71000 elapsed seconds
+Timing for main: time 2019-09-04_12:47:00 on domain   1:    0.72000 elapsed seconds
+Timing for main: time 2019-09-04_12:48:00 on domain   1:    0.73000 elapsed seconds
+Timing for main: time 2019-09-04_12:49:00 on domain   1:    0.74000 elapsed seconds
+Timing for main: time 2019-09-04_12:50:00 on domain   1:    0.70000 elapsed seconds
+Timing for main: time 2019-09-04_12:51:00 on domain   1:    0.71000 elapsed seconds
+Timing for main: time 2019-09-04_12:52:00 on domain   1:    0.72000 elapsed seconds
+Timing for main: time 2019-09-04_12:53:00 on domain   1:    0.73000 elapsed seconds
+Timing for main: time 2019-09-04_12:54:00 on domain   1:    0.74000 elapsed seconds
+Timing for main: time 2019-09-04_12:55:00 on domain   1:    0.70000 elapsed seconds
+Timing for main: time 2019-09-04_12:56:00 on domain   1:    0.71000 elapsed seconds
+Timing for main: time 2019-09-04_12:57:00 on domain   1:    0.72000 elapsed seconds
+Timing for main: time 2019-09-04_12:58:00 on domain   1:    0.73000 elapsed seconds
+Timing for main: time 2019-09-04_12:59:00 on domain   1:    0.74000 elapsed seconds
+Timing for main: time 2019-09-04_13:00:00 on domain   1:    0.70000 elapsed seconds
+Timing for Writing wrfout_d01_2019-09-04_13:00:00 for domain        1:    0.81234 elapsed seconds
+d01 2019-09-04_13:00:00 wrf: SUCCESS COMPLETE WRF

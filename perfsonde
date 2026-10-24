@@ -1,0 +1,98 @@
+#!/bin/bash
+# PerfSonde front end — HPC performance probe for weather codes (MPAS-A, WRF).
+#
+#   ./perfsonde discover [--name N] [--probe-job]  probe this system, write config/sites/<N>/
+#   ./perfsonde sites                     list site profiles and which one is selected here
+#   ./perfsonde selftest                  ReFrame + parsers check on this node (seconds)
+#   ./perfsonde build  list|build|status|prepare [opts]   build matrix (build/build_matrix.py)
+#   ./perfsonde list   mpas|wrf|osu|all   show the test cases the matrix expands to
+#   ./perfsonde dry    mpas|wrf|osu|all   generate job scripts without submitting
+#   ./perfsonde run    mpas|wrf|osu|all   submit and wait (results -> work/<site>/results)
+#   ./perfsonde report                    analysis/collect.py + analysis/plot.py
+#
+# Global option (before the command):  --site NAME   use config/sites/NAME
+#   (default: the profile whose system.hostnames match this host, or the only one)
+# Extra arguments are passed on, e.g. to ReFrame:
+#   ./perfsonde run mpas -n 'MPASAtm.*nodes=1'      only 1-node cases
+#   ./perfsonde --site frontier run wrf -S time_limit=1h
+set -eo pipefail
+
+PERFSONDE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export PERFSONDE_ROOT
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --site) export PERFSONDE_SITE_NAME="$2"; shift 2 ;;
+    --site=*) export PERFSONDE_SITE_NAME="${1#--site=}"; shift ;;
+    *) break ;;
+  esac
+done
+
+VENV="${PERFSONDE_VENV:-$PERFSONDE_ROOT/.venv}"
+if [ -z "${VIRTUAL_ENV:-}" ] && [ -f "$VENV/bin/activate" ]; then
+  # shellcheck disable=SC1091
+  source "$VENV/bin/activate"
+fi
+PY=${PERFSONDE_PYTHON:-python3}
+
+need_reframe() {
+  command -v reframe >/dev/null || {
+    echo "reframe not found: pip install reframe-hpc into $VENV (or offline/install_reframe.sh)" >&2; exit 1; }
+}
+
+files_for() {
+  case "$1" in
+    mpas) echo "-c $PERFSONDE_ROOT/tests/mpas_atm.py" ;;
+    wrf)  echo "-c $PERFSONDE_ROOT/tests/wrf_em.py" ;;
+    osu)  echo "-c $PERFSONDE_ROOT/tests/osu.py" ;;
+    all)  echo "-c $PERFSONDE_ROOT/tests/mpas_atm.py -c $PERFSONDE_ROOT/tests/wrf_em.py -c $PERFSONDE_ROOT/tests/osu.py" ;;
+    *) echo "unknown suite '$1' (mpas|wrf|osu|all)" >&2; exit 2 ;;
+  esac
+}
+
+sysname() {
+  "$PY" - <<EOF
+import sys; sys.path.insert(0, '$PERFSONDE_ROOT/lib')
+from perfsonde import site
+try:
+    s = site.site()
+except site.SiteError as e:
+    sys.exit(f'perfsonde: {e}')
+print(s.get('system', {}).get('name') or site.site_name())
+EOF
+}
+
+RFM=(reframe -C "$PERFSONDE_ROOT/config/reframe_settings.py" --exec-policy=async)
+cmd=${1:-help}; shift || true
+case "$cmd" in
+  discover)
+    exec "$PY" "$PERFSONDE_ROOT/tools/discover.py" "$@" ;;
+  sites)
+    "$PY" - <<EOF
+import sys; sys.path.insert(0, '$PERFSONDE_ROOT/lib')
+from perfsonde import site
+try:
+    cur = site.site_name()
+except site.SiteError as e:
+    cur = None; print(f'(no site selected: {e})')
+for s in site.list_sites():
+    print(('* ' if s == cur else '  ') + s)
+EOF
+    ;;
+  build)
+    exec "$PY" "$PERFSONDE_ROOT/build/build_matrix.py" "$@" ;;
+  selftest)
+    need_reframe; sn=$(sysname)
+    exec "${RFM[@]}" -c "$PERFSONDE_ROOT/tests/selftest.py" --system "$sn:local" -r "$@" ;;
+  list|dry|run)
+    need_reframe; sn=$(sysname)
+    suite=${1:-all}; shift || true
+    case "$cmd" in list) act=(-l) ;; dry) act=(--dry-run) ;; run) act=(-r) ;; esac
+    # shellcheck disable=SC2046
+    exec "${RFM[@]}" $(files_for "$suite") --system "$sn:compute" "${act[@]}" "$@" ;;
+  report)
+    "$PY" "$PERFSONDE_ROOT/analysis/collect.py" "$@"
+    "$PY" "$PERFSONDE_ROOT/analysis/plot.py" || echo "(plot.py failed: is matplotlib installed?)" ;;
+  *)
+    sed -n '2,19p' "$0" ;;
+esac
